@@ -35,15 +35,15 @@ import java.util.List;
 /**
  * Created by rjaylward on 2019-04-26
  */
-public class MapFragment extends Fragment implements OnMapReadyCallback {
+public class MapFragment extends Fragment {
 
     private static final int ZOOM_LEVEL = 7;
 
     private MapView mapView;
     private @Nullable GoogleMap googleMap;
+    private UserLocationsAdapter adapter;
 
     private Drawable vectorDrawable;
-    private UserLocationsAdapter adapter;
 
     private List<Marker> markers = new ArrayList<>();
 
@@ -55,21 +55,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        adapter = new UserLocationsAdapter();
-        adapter.setClickListener(new UserLocationCardViewHolder.LocationCardClickListener() {
-            @Override
-            public void onCardClick(UserLocationData locationData, int index) {
-                selectMarkerAtIndex(index);
-            }
-        });
-    }
-
-    private void selectMarkerAtIndex(int index) {
-        if(!markers.isEmpty() && googleMap != null) {
-            Marker marker = markers.get(index);
-            marker.showInfoWindow();
-            googleMap.animateCamera(CameraUpdateFactory.newLatLng(marker.getPosition()), ZOOM_LEVEL, null);
-        }
     }
 
     @Nullable
@@ -78,83 +63,18 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                              @Nullable Bundle savedInstanceState) {
         View root = inflater.inflate(R.layout.fragment_map, container, false);
 
+        RecyclerView recyclerView = root.findViewById(R.id.fm_list);
+        recyclerView.setVisibility(View.GONE);
+
+        WindowUtil.doOnApplyWindowInsetsToMargins(recyclerView, false, true);
+
         vectorDrawable = ContextCompat.getDrawable(requireContext(), R.drawable.ic_figure_black);
 
         mapView = root.findViewById(R.id.fm_map);
         mapView.onCreate(savedInstanceState);
-        mapView.getMapAsync(this);
-
-        RecyclerView recyclerView = root.findViewById(R.id.fm_list);
-        recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), RecyclerView.HORIZONTAL, false));
-        recyclerView.setAdapter(adapter);
-
-        WindowUtil.doOnApplyWindowInsetsToMargins(recyclerView, false, true);
-
-        SnapHelper snapHelper = new PagerSnapHelper();
-        snapHelper.attachToRecyclerView(recyclerView);
-
-        recyclerView.addOnScrollListener(new SnapPageChangeListener(snapHelper, new SnapPageChangeListener.OnSnapPageChanged() {
-            @Override
-            public void onSnapToItem(int index) {
-                selectMarkerAtIndex(index);
-            }
-        }));
+//        mapView.getMapAsync(this);
 
         return root;
-    }
-
-    @Override
-    public void onMapReady(GoogleMap googleMap) {
-        this.googleMap = googleMap;
-        // Add a marker in Sydney and move the camera
-
-        googleMap.getUiSettings().setMapToolbarEnabled(false);
-
-        DataSources.getInstance().getStaticUserLocations(new DataSources.Callback<List<UserLocationData>>() {
-            @Override
-            public void onDataFetched(List<UserLocationData> data) {
-                googleMap.clear();
-                markers.clear();
-
-                adapter.setItems(data);
-
-                boolean movedCamera = false;
-
-                for(UserLocationData userLocationData : data) {
-                    LatLng latLng = new LatLng(userLocationData.getLatitude(), userLocationData.getLongitude());
-                    if(!movedCamera) {
-                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, ZOOM_LEVEL));
-                        movedCamera = true;
-                    }
-
-                    markers.add(googleMap.addMarker(createMarker(userLocationData, latLng)));
-                }
-
-                adapter.setItems(data);
-            }
-        });
-    }
-
-    private MarkerOptions createMarker(UserLocationData data, LatLng latLng) {
-        return new MarkerOptions()
-                .position(latLng)
-                .title(data.getUserName())
-                .snippet(data.getLocationName())
-                .icon(bitmapDescriptorFromVector(Color.parseColor(data.getColor())));
-    }
-
-    private BitmapDescriptor bitmapDescriptorFromVector(@ColorInt int tint) {
-        vectorDrawable.setTint(tint);
-        vectorDrawable.setBounds(0, 0, vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight());
-        Bitmap bitmap = Bitmap.createBitmap(
-                vectorDrawable.getIntrinsicWidth(),
-                vectorDrawable.getIntrinsicHeight(),
-                Bitmap.Config.ARGB_8888
-        );
-
-        Canvas canvas = new Canvas(bitmap);
-        vectorDrawable.draw(canvas);
-        return BitmapDescriptorFactory.fromBitmap(bitmap);
     }
 
     @Override
@@ -186,6 +106,36 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
     public void onLowMemory() {
         super.onLowMemory();
         mapView.onLowMemory();
+    }
+
+//    private MarkerOptions createMarker(UserLocationData data, LatLng latLng) {
+//        return new MarkerOptions()
+//                .position(latLng)
+//                .title(data.getUserName())
+//                .snippet(data.getLocationName())
+//                .icon(bitmapDescriptorFromVector(Color.parseColor(data.getColor())));
+//    }
+
+//    private void selectMarkerAtIndex(int index) {
+//        if(!markers.isEmpty() && googleMap != null) {
+//            Marker marker = markers.get(index);
+//            marker.showInfoWindow();
+//            googleMap.animateCamera(CameraUpdateFactory.newLatLng(marker.getPosition()), ZOOM_LEVEL, null);
+//        }
+//    }
+
+    private BitmapDescriptor bitmapDescriptorFromVector(@ColorInt int tint) {
+        vectorDrawable.setTint(tint);
+        vectorDrawable.setBounds(0, 0, vectorDrawable.getIntrinsicWidth(), vectorDrawable.getIntrinsicHeight());
+        Bitmap bitmap = Bitmap.createBitmap(
+                vectorDrawable.getIntrinsicWidth(),
+                vectorDrawable.getIntrinsicHeight(),
+                Bitmap.Config.ARGB_8888
+        );
+
+        Canvas canvas = new Canvas(bitmap);
+        vectorDrawable.draw(canvas);
+        return BitmapDescriptorFactory.fromBitmap(bitmap);
     }
 
 }
