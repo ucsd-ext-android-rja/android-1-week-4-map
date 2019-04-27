@@ -37,6 +37,8 @@ import java.util.List;
  */
 public class MapFragment extends Fragment implements OnMapReadyCallback {
 
+    private static final int ZOOM_LEVEL = 7;
+
     private MapView mapView;
     private @Nullable GoogleMap googleMap;
 
@@ -66,7 +68,7 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         if(!markers.isEmpty() && googleMap != null) {
             Marker marker = markers.get(index);
             marker.showInfoWindow();
-            googleMap.animateCamera(CameraUpdateFactory.newLatLng(marker.getPosition()), 7, null);
+            googleMap.animateCamera(CameraUpdateFactory.newLatLng(marker.getPosition()), ZOOM_LEVEL, null);
         }
     }
 
@@ -106,18 +108,22 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         this.googleMap = googleMap;
         // Add a marker in Sydney and move the camera
 
+        googleMap.getUiSettings().setMapToolbarEnabled(false);
+
         DataSources.getInstance().getStaticUserLocations(new DataSources.Callback<List<UserLocationData>>() {
             @Override
             public void onDataFetched(List<UserLocationData> data) {
                 googleMap.clear();
                 markers.clear();
 
+                adapter.setItems(data);
+
                 boolean movedCamera = false;
 
                 for(UserLocationData userLocationData : data) {
                     LatLng latLng = new LatLng(userLocationData.getLatitude(), userLocationData.getLongitude());
                     if(!movedCamera) {
-                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 7));
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, ZOOM_LEVEL));
                         movedCamera = true;
                     }
 
@@ -127,8 +133,6 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
                 adapter.setItems(data);
             }
         });
-
-        googleMap.getUiSettings().setMapToolbarEnabled(false);
     }
 
     private MarkerOptions createMarker(UserLocationData data, LatLng latLng) {
