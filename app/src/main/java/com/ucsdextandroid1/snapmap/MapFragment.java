@@ -35,7 +35,7 @@ import java.util.List;
 /**
  * Created by rjaylward on 2019-04-26
  */
-public class MapFragment extends Fragment {
+public class MapFragment extends Fragment implements OnMapReadyCallback {
 
     private static final int ZOOM_LEVEL = 7;
 
@@ -64,7 +64,7 @@ public class MapFragment extends Fragment {
         View root = inflater.inflate(R.layout.fragment_map, container, false);
 
         RecyclerView recyclerView = root.findViewById(R.id.fm_list);
-        recyclerView.setVisibility(View.GONE);
+        recyclerView.setVisibility(View.VISIBLE); //TODO changed in class 4
 
         WindowUtil.doOnApplyWindowInsetsToMargins(recyclerView, false, true);
 
@@ -72,9 +72,37 @@ public class MapFragment extends Fragment {
 
         mapView = root.findViewById(R.id.fm_map);
         mapView.onCreate(savedInstanceState);
-//        mapView.getMapAsync(this);
+
+
+        mapView.getMapAsync(this);
+
+        //TODO added in class 4
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), RecyclerView.HORIZONTAL, false));
+
+        UserLocationsAdapter adapter = new UserLocationsAdapter();
+
+        recyclerView.setAdapter(adapter);
+
+
+        DataSources.getInstance().getStaticUserLocations(new DataSources.Callback<List<UserLocationData>>() {
+            @Override
+            public void onDataFetched(List<UserLocationData> data) {
+                adapter.setItems(data);
+            }
+        });
+        //End of new code from class 4
 
         return root;
+    }
+
+    //TODO added in class 4
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions.position(new LatLng(38, 24));
+        markerOptions.title("Athens, Greece");
+
+        googleMap.addMarker(markerOptions);
     }
 
     @Override
