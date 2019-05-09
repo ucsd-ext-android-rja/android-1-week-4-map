@@ -1,5 +1,6 @@
 package com.ucsdextandroid1.snapmap;
 
+import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -8,6 +9,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -79,20 +81,62 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
         //TODO added in class 4
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), RecyclerView.HORIZONTAL, false));
 
-        UserLocationsAdapter adapter = new UserLocationsAdapter();
+        adapter = new UserLocationsAdapter();
 
         recyclerView.setAdapter(adapter);
+        //End of new code from class 4
 
+        //TODO changed in class 5
+        updateAdapter();
 
-        DataSources.getInstance().getStaticUserLocations(new DataSources.Callback<List<UserLocationData>>() {
+        updateUserLocation();
+
+        return root;
+    }
+
+    /**
+     * This was moved into is own method so we can call again after the users location has been
+     * updated.
+     */
+    //TODO added in class 5
+    private void updateAdapter() {
+        DataSources.getInstance().getActiveUserLocations(new DataSources.Callback<List<UserLocationData>>() {
             @Override
             public void onDataFetched(List<UserLocationData> data) {
                 adapter.setItems(data);
             }
         });
-        //End of new code from class 4
+    }
 
-        return root;
+    /**
+     * In this method we just send a random location to the backend to simulate finding the users
+     * actual location.
+     */
+    //TODO added in class 5
+    private void updateUserLocation() {
+
+        //TODO add your users id here
+        String userId = "user_";
+
+        UserLocationData locationData = new UserLocationData(
+                "#05688F",
+                33.70,
+                -112.43,
+                "Phoenix, AZ",
+                userId,
+                "Name"
+        );
+
+        DataSources.getInstance().updateUser(userId, locationData, new DataSources.Callback<UserLocationData>() {
+            @Override
+            public void onDataFetched(UserLocationData data) {
+                Toast.makeText(getContext(), data != null ? "Success" : "Failure", Toast.LENGTH_SHORT)
+                        .show();
+
+                if(data != null)
+                    updateAdapter();
+            }
+        });
     }
 
     //TODO added in class 4

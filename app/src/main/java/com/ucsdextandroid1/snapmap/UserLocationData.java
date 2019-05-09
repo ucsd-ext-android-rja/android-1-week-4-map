@@ -15,6 +15,7 @@ public class UserLocationData {
     private double longitude;
     @SerializedName("location_name")
     private String locationName;
+    @RemoveFromJson //added this custom annotation in class 4
     @SerializedName("user_id")
     private String userId;
     @SerializedName("user_name")
@@ -53,4 +54,7 @@ public class UserLocationData {
         return userName;
     }
 
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
 }
