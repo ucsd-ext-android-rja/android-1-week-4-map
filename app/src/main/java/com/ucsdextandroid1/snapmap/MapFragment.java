@@ -100,12 +100,12 @@ public class MapFragment extends Fragment implements OnMapReadyCallback {
      */
     //TODO added in class 5
     private void updateAdapter() {
-//        DataSources.getInstance().getActiveUserLocations(new DataSources.Callback<List<UserLocationData>>() {
-//            @Override
-//            public void onDataFetched(List<UserLocationData> data) {
-//                adapter.setItems(data);
-//            }
-//        });
+        DataSources.getInstance().getActiveUserLocations(new DataSources.Callback<List<UserLocationData>>() {
+            @Override
+            public void onDataFetched(List<UserLocationData> data) {
+                adapter.setItems(data);
+            }
+        });
     }
 
     /**
